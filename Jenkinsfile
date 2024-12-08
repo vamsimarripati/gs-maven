@@ -52,17 +52,19 @@ pipeline {
             }
         }
 
-        stage('Deploy to Tomcat') {
-            steps {
-                script {
-                    def jarFile = findFiles(glob: '**/target/*.jar')[0].path
-                    echo "Deploying ${jarFile} to Tomcat"
-                    sh """
-                        curl -u ${TOMCAT_USER}:${TOMCAT_PASSWORD} --upload-file ${jarFile} ${TOMCAT_DEPLOY_URL}
-                    """
-                }
-            }
+stage('Deploy to Tomcat') {
+    steps {
+        script {
+            // Use shell command to list files and get the JAR file path
+            def artifactFile = sh(script: 'ls target/*.jar', returnStdout: true).trim()
+            echo "Deploying ${artifactFile} to Tomcat"
+            sh """
+                curl -u ${TOMCAT_USER}:${TOMCAT_PASSWORD} --upload-file ${artifactFile} ${TOMCAT_DEPLOY_URL}
+            """
         }
+    }
+}
+
     }
 
     post {
