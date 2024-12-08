@@ -9,8 +9,6 @@ pipeline {
         SONAR_HOST_URL = 'http://13.233.93.12:9000' // SonarQube server URL
         SONAR_PROJECT_KEY = 'org.springframework:gs-maven'
         SONAR_PROJECT_NAME = 'gs-maven'
-        NEXUS_URL = 'https://13.233.245.91:8081/repository/maven-releases/'
-        NEXUS_CREDENTIALS_ID = 'nexus-credentials'  // Jenkins credential ID for Nexus
         TOMCAT_HOST = 'http://65.0.168.203:8080'
         TOMCAT_USER = 'admin'
         TOMCAT_PASSWORD = 'Sushmi@2001'
@@ -54,35 +52,13 @@ pipeline {
             }
         }
 
-        stage('Upload to Nexus') {
-            steps {
-                script {
-                    // Upload the artifact to Nexus
-                    def artifactFile = findFiles(glob: '**/target/*.jar')[0].path
-                    echo "Uploading artifact ${artifactFile} to Nexus"
-                    withCredentials([usernamePassword(credentialsId: "${NEXUS_CREDENTIALS_ID}", usernameVariable: 'NEXUS_USERNAME', passwordVariable: 'NEXUS_PASSWORD')]) {
-                        sh """
-                            mvn deploy:deploy-file \
-                                -Dfile=${artifactFile} \
-                                -DrepositoryId=nexus \
-                                -Durl=${NEXUS_URL} \
-                                -DgroupId=com.example \
-                                -DartifactId=gs-maven \
-                                -Dversion=0.1.0-SNAPSHOT \
-                                -Dpackaging=jar
-                        """
-                    }
-                }
-            }
-        }
-
         stage('Deploy to Tomcat') {
             steps {
                 script {
-                    def warFile = findFiles(glob: '**/target/*.war')[0].path
-                    echo "Deploying ${warFile} to Tomcat"
+                    def jarFile = findFiles(glob: '**/target/*.jar')[0].path
+                    echo "Deploying ${jarFile} to Tomcat"
                     sh """
-                        curl -u ${TOMCAT_USER}:${TOMCAT_PASSWORD} --upload-file ${warFile} ${TOMCAT_DEPLOY_URL}
+                        curl -u ${TOMCAT_USER}:${TOMCAT_PASSWORD} --upload-file ${jarFile} ${TOMCAT_DEPLOY_URL}
                     """
                 }
             }
