@@ -9,6 +9,7 @@ pipeline {
         SONAR_HOST_URL = 'http://13.233.93.12:9000' // SonarQube server URL
         SONAR_PROJECT_KEY = 'org.springframework:gs-maven'
         SONAR_PROJECT_NAME = 'gs-maven'
+        NEXUS_CREDENTIALS_ID = 'nexus-credentials'  // Jenkins credential ID for Nexus
         TOMCAT_HOST = 'http://65.0.168.203:8080'
         TOMCAT_USER = 'admin'
         TOMCAT_PASSWORD = 'Sushmi@2001'
@@ -44,27 +45,32 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    // Ensure that you're in the correct directory
                     dir('complete') {
                         sh 'mvn clean package'
+                        // List files in the target directory to verify JAR file creation
+                        sh 'ls -l target/'
                     }
                 }
             }
         }
 
-stage('Deploy to Tomcat') {
-    steps {
-        script {
-            // Use shell command to list files and get the JAR file path
-            def artifactFile = sh(script: 'ls target/*.jar', returnStdout: true).trim()
-            echo "Deploying ${artifactFile} to Tomcat"
-            sh """
-                curl -u ${TOMCAT_USER}:${TOMCAT_PASSWORD} --upload-file ${artifactFile} ${TOMCAT_DEPLOY_URL}
-            """
+        stage('Deploy to Tomcat') {
+            steps {
+                script {
+                    // List files in target directory and capture JAR file path
+                    def artifactFile = sh(script: 'ls target/*.jar || echo "No JAR file found"', returnStdout: true).trim()
+                    
+                    if (artifactFile == "No JAR file found") {
+                        error("JAR file not found. Please check the build step.")
+                    }
+                    
+                    echo "Deploying ${artifactFile} to Tomcat"
+                    sh """
+                        curl -u ${TOMCAT_USER}:${TOMCAT_PASSWORD} --upload-file ${artifactFile} ${TOMCAT_DEPLOY_URL}
+                    """
+                }
+            }
         }
-    }
-}
-
     }
 
     post {
