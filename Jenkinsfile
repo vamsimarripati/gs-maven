@@ -12,8 +12,8 @@ pipeline {
         NEXUS_URL = 'https://13.233.245.12:8081/repository/maven-releases/'
         NEXUS_CREDENTIALS_ID = 'nexus-credentials'  // Jenkins credential ID for Nexus
         TOMCAT_HOST = 'http://65.0.168.203:8080'
-        TOMCAT_USER = 'your-tomcat-username'
-        TOMCAT_PASSWORD = 'your-tomcat-password'
+        TOMCAT_USER = 'admin'
+        TOMCAT_PASSWORD = 'Sushmi@2001'
         TOMCAT_DEPLOY_URL = "http://${TOMCAT_USER}:${TOMCAT_PASSWORD}@${TOMCAT_HOST}:8080/manager/text/deploy?path=/gs-maven&update=true"
     }
 
