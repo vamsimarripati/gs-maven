@@ -27,9 +27,9 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    // Assuming the project is in the 'complete' directory
                     dir('complete') {
-                        withCredentials([string(credentialsId: 'sonar', variable: 'SONAR_TOKEN')]) {
+                        // Using usernamePassword for SonarQube credentials
+                        withCredentials([usernamePassword(credentialsId: 'sonar', usernameVariable: 'SONAR_USER', passwordVariable: 'SONAR_TOKEN')]) {
                             sh """
                                 mvn clean verify sonar:sonar \
                                     -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
