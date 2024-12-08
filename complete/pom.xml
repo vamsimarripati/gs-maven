@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    
+
     <groupId>org.springframework</groupId>
     <artifactId>gs-maven</artifactId>
     <packaging>jar</packaging>
@@ -12,32 +12,33 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         
-        <!-- SonarQube properties (optional if defined in Jenkins) -->
+        <!-- SonarQube properties (HTTP URL) -->
         <sonar.projectKey>org.springframework:gs-maven</sonar.projectKey>
         <sonar.projectName>gs-maven</sonar.projectName>
         <sonar.host.url>http://13.233.93.12:9000/</sonar.host.url>
     </properties>
 
     <dependencies>
-        <!-- Joda Time -->
+        <!-- tag::joda[] -->
         <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
             <version>2.9.2</version>
         </dependency>
-
-        <!-- JUnit (for testing) -->
+        <!-- end::joda[] -->
+        <!-- tag::junit[] -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.12</version>
             <scope>test</scope>
         </dependency>
+        <!-- end::junit[] -->
     </dependencies>
 
     <build>
         <plugins>
-            <!-- Maven Shade Plugin (for fat JARs) -->
+            <!-- Maven Shade Plugin (existing configuration) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -72,8 +73,8 @@
                 <artifactId>maven-deploy-plugin</artifactId>
                 <version>3.1.0</version>
                 <configuration>
-                    <!-- Specify the deployment repository -->
-                    <altDeploymentRepository>nexus::default::https://13.233.245.91:8081/repository/maven-releases/</altDeploymentRepository>
+                    <!-- Nexus Repository URL (HTTP) -->
+                    <altDeploymentRepository>nexus::default::http://13.233.245.91:8081/repository/maven-releases/</altDeploymentRepository>
                 </configuration>
             </plugin>
         </plugins>
@@ -82,11 +83,13 @@
     <distributionManagement>
         <repository>
             <id>nexus</id>
-            <url>https://13.233.245.91:8081/repository/maven-releases/</url>
+            <!-- Nexus Repository URL (HTTP) -->
+            <url>http://13.233.245.91:8081/repository/maven-releases/</url>
         </repository>
         <snapshotRepository>
             <id>nexus</id>
-            <url>https://13.233.245.91:8081/repository/maven-snapshots/</url>
+            <!-- Nexus Snapshot Repository URL (HTTP) -->
+            <url>http://13.233.245.12:8081/repository/maven-snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
 </project>
