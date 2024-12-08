@@ -57,8 +57,14 @@ pipeline {
         stage('Deploy to Tomcat') {
             steps {
                 script {
+                    // Ensure that the 'target/' directory exists before attempting to find the .jar file
+                    def targetDirExists = fileExists 'complete/target'
+                    if (!targetDirExists) {
+                        error "Target directory does not exist. Please check the build step."
+                    }
+
                     // Use find command to search for .jar file in target directory
-                    def artifactFile = sh(script: 'find target/ -name "*.jar" -print -quit', returnStdout: true).trim()
+                    def artifactFile = sh(script: 'find complete/target/ -name "*.jar" -print -quit', returnStdout: true).trim()
                     
                     if (!artifactFile) {
                         error("JAR file not found. Please check the build step.")
