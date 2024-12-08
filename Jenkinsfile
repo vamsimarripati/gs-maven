@@ -49,6 +49,7 @@ pipeline {
                     // Ensure that you're in the correct directory
                     dir('complete') {
                         sh 'mvn clean package'
+                        archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
                     }
                 }
             }
@@ -57,10 +58,12 @@ pipeline {
         stage('Upload to Nexus') {
             steps {
                 script {
-                    // Upload the artifact to Nexus
-                    def artifactFile = findFiles(glob: '**/target/*.jar')[0].path
+                    // Define the artifact file (assuming it's in the target directory)
+                    def artifactFile = 'target/gs-maven-0.1.0-SNAPSHOT.jar'
                     echo "Uploading artifact ${artifactFile} to Nexus"
-                    withCredentials([usernamePassword(credentialsId: "${NEXUS_CREDENTIALS_ID}", usernameVariable: 'NEXUS_USERNAME', passwordVariable: 'NEXUS_PASSWORD')]) {
+                    
+                    // Use Jenkins credentials securely with the 'withCredentials' block
+                    withCredentials([usernamePassword(credentialsId: 'nexus-credentials', usernameVariable: 'NEXUS_USERNAME', passwordVariable: 'NEXUS_PASSWORD')]) {
                         sh """
                             mvn deploy:deploy-file \
                                 -Dfile=${artifactFile} \
@@ -69,7 +72,9 @@ pipeline {
                                 -DgroupId=com.example \
                                 -DartifactId=gs-maven \
                                 -Dversion=0.1.0-SNAPSHOT \
-                                -Dpackaging=jar
+                                -Dpackaging=jar \
+                                -Dusername=${NEXUS_USERNAME} \
+                                -Dpassword=${NEXUS_PASSWORD}
                         """
                     }
                 }
@@ -79,7 +84,7 @@ pipeline {
         stage('Deploy to Tomcat') {
             steps {
                 script {
-                    def warFile = findFiles(glob: '**/target/*.war')[0].path
+                    def warFile = 'target/gs-maven-0.1.0-SNAPSHOT.war'
                     echo "Deploying ${warFile} to Tomcat"
                     sh """
                         curl -u ${TOMCAT_USER}:${TOMCAT_PASSWORD} --upload-file ${warFile} ${TOMCAT_DEPLOY_URL}
