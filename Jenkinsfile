@@ -6,11 +6,11 @@ pipeline {
     }
 
     environment {
-        SONAR_HOST_URL = 'http://13.233.93.12:9000' // SonarQube server URL
+        SONAR_HOST_URL = 'http://13.233.93.12:9000'
         SONAR_PROJECT_KEY = 'org.springframework:gs-maven'
         SONAR_PROJECT_NAME = 'gs-maven'
         NEXUS_URL = 'https://13.233.245.91:8081/repository/maven-releases/'
-        NEXUS_CREDENTIALS_ID = 'nexus-credentials'  // Jenkins credential ID for Nexus
+        NEXUS_CREDENTIALS_ID = 'nexus-credentials'
         TOMCAT_HOST = 'http://65.0.168.203:8080'
         TOMCAT_USER = 'admin'
         TOMCAT_PASSWORD = 'Sushmi@2001'
@@ -28,7 +28,6 @@ pipeline {
             steps {
                 script {
                     dir('complete') {
-                        // Using usernamePassword for SonarQube credentials
                         withCredentials([usernamePassword(credentialsId: 'sonar', usernameVariable: 'SONAR_USER', passwordVariable: 'SONAR_TOKEN')]) {
                             sh """
                                 mvn clean verify sonar:sonar \
@@ -45,11 +44,8 @@ pipeline {
 
         stage('Build') {
             steps {
-                script {
-                    // Ensure that you're in the correct directory
-                    dir('complete') {
-                        sh 'mvn clean package'
-                    }
+                dir('complete') {
+                    sh 'mvn clean package'
                 }
             }
         }
@@ -57,9 +53,9 @@ pipeline {
         stage('Upload to Nexus') {
             steps {
                 script {
-                    // Upload the artifact to Nexus
-                    def artifactFile = findFiles(glob: '**/target/*.jar')[0].path
+                    def artifactFile = sh(script: "ls complete/target/*.jar", returnStdout: true).trim()
                     echo "Uploading artifact ${artifactFile} to Nexus"
+
                     withCredentials([usernamePassword(credentialsId: "${NEXUS_CREDENTIALS_ID}", usernameVariable: 'NEXUS_USERNAME', passwordVariable: 'NEXUS_PASSWORD')]) {
                         sh """
                             mvn deploy:deploy-file \
