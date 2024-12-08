@@ -28,7 +28,8 @@ pipeline {
             steps {
                 script {
                     dir('complete') {
-                        withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {  // Updated credential ID
+                        // Using usernamePassword for SonarQube credentials
+                        withCredentials([usernamePassword(credentialsId: 'sonar', usernameVariable: 'SONAR_USER', passwordVariable: 'SONAR_TOKEN')]) {
                             sh """
                                 mvn clean verify sonar:sonar \
                                     -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
@@ -44,13 +45,16 @@ pipeline {
 
         stage('Build') {
             steps {
-                dir('complete') {
-                    sh 'mvn clean package'
+                script {
+                    // Ensure that you're in the correct directory
+                    dir('complete') {
+                        sh 'mvn clean package'
+                    }
                 }
             }
         }
 
-        stage('Upload to Nexus') {
+stage('Upload to Nexus') {
             steps {
                 script {
                     // Find the artifact file (JAR)
@@ -73,11 +77,11 @@ pipeline {
             }
         }
 
+
         stage('Deploy to Tomcat') {
             steps {
                 script {
-                    // Find the WAR file for deployment
-                    def warFile = sh(script: "ls complete/target/*.war", returnStdout: true).trim()
+                    def warFile = findFiles(glob: '**/target/*.war')[0].path
                     echo "Deploying ${warFile} to Tomcat"
                     sh """
                         curl -u ${TOMCAT_USER}:${TOMCAT_PASSWORD} --upload-file ${warFile} ${TOMCAT_DEPLOY_URL}
