@@ -57,8 +57,8 @@ pipeline {
         stage('Upload to Nexus') {
             steps {
                 script {
-                    // Upload the artifact to Nexus
-                    def artifactFile = findFiles(glob: '**/target/*.jar')[0].path
+                    // Find the artifact file using shell commands
+                    def artifactFile = sh(script: "find . -name '*.jar' -print -quit", returnStdout: true).trim()
                     echo "Uploading artifact ${artifactFile} to Nexus"
                     withCredentials([usernamePassword(credentialsId: "${NEXUS_CREDENTIALS_ID}", usernameVariable: 'NEXUS_USERNAME', passwordVariable: 'NEXUS_PASSWORD')]) {
                         sh """
@@ -79,7 +79,8 @@ pipeline {
         stage('Deploy to Tomcat') {
             steps {
                 script {
-                    def warFile = findFiles(glob: '**/target/*.war')[0].path
+                    // Find the WAR file using shell commands
+                    def warFile = sh(script: "find . -name '*.war' -print -quit", returnStdout: true).trim()
                     echo "Deploying ${warFile} to Tomcat"
                     sh """
                         curl -u ${TOMCAT_USER}:${TOMCAT_PASSWORD} --upload-file ${warFile} ${TOMCAT_DEPLOY_URL}
