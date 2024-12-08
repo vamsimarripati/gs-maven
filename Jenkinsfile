@@ -9,8 +9,6 @@ pipeline {
         SONAR_HOST_URL = 'http://13.233.93.12:9000' // SonarQube server URL
         SONAR_PROJECT_KEY = 'org.springframework:gs-maven'
         SONAR_PROJECT_NAME = 'gs-maven'
-        NEXUS_URL = 'https://13.233.245.91:8081/repository/maven-releases/'
-        NEXUS_CREDENTIALS_ID = 'nexus-credentials'  // Jenkins credential ID for Nexus
         TOMCAT_HOST = 'http://65.0.168.203:8080'
         TOMCAT_USER = 'admin'
         TOMCAT_PASSWORD = 'Sushmi@2001'
@@ -55,38 +53,6 @@ pipeline {
 
                         // Archive the artifacts for reference
                         archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
-                    }
-                }
-            }
-        }
-
-        stage('Upload to Nexus') {
-            steps {
-                script {
-                    // Use the correct artifact file name
-                    def artifactFile = 'target/gs-maven-0.1.0.jar'  // Corrected name
-
-                    // Verify if the file exists
-                    if (fileExists(artifactFile)) {
-                        echo "Found artifact ${artifactFile}, uploading to Nexus..."
-
-                        // Use Jenkins credentials securely with the 'withCredentials' block
-                        withCredentials([usernamePassword(credentialsId: 'nexus-credentials', usernameVariable: 'NEXUS_USERNAME', passwordVariable: 'NEXUS_PASSWORD')]) {
-                            sh """
-                                mvn deploy:deploy-file \
-                                    -Dfile=${artifactFile} \
-                                    -DrepositoryId=nexus \
-                                    -Durl=${NEXUS_URL} \
-                                    -DgroupId=com.example \
-                                    -DartifactId=gs-maven \
-                                    -Dversion=0.1.0 \
-                                    -Dpackaging=jar \
-                                    -Dusername=${NEXUS_USERNAME} \
-                                    -Dpassword=${NEXUS_PASSWORD}
-                            """
-                        }
-                    } else {
-                        error "Artifact ${artifactFile} not found!"
                     }
                 }
             }
