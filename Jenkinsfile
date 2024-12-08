@@ -10,7 +10,6 @@ pipeline {
         SONAR_PROJECT_KEY = 'org.springframework:gs-maven'
         SONAR_PROJECT_NAME = 'gs-maven'
         NEXUS_URL = 'http://13.233.245.91:8081/repository/maven-releases/' // Nexus HTTP URL
-        NEXUS_CREDENTIALS_ID = 'nexus-credentials'  // Jenkins credential ID for Nexus
         TOMCAT_HOST = 'http://65.0.168.203:8080'
         TOMCAT_USER = 'admin'
         TOMCAT_PASSWORD = 'Sushmi@2001'
@@ -81,7 +80,7 @@ pipeline {
                     // Upload the artifact to Nexus
                     def artifactFile = findFiles(glob: '**/target/*.jar')[0].path
                     echo "Uploading artifact ${artifactFile} to Nexus"
-                    withCredentials([usernamePassword(credentialsId: "${NEXUS_CREDENTIALS_ID}", usernameVariable: 'NEXUS_USERNAME', passwordVariable: 'NEXUS_PASSWORD')]) {
+                    withCredentials([usernamePassword(credentialsId: 'nexus-credentials', usernameVariable: 'NEXUS_USERNAME', passwordVariable: 'NEXUS_PASSWORD')]) {
                         sh """
                             mvn deploy:deploy-file \
                                 -Dfile=${artifactFile} \
