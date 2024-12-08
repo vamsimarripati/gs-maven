@@ -3,8 +3,6 @@ pipeline {
 
     environment {
         TOMCAT_URL = "http://65.0.168.203:8080/manager/text/deploy?path=/gs-maven"
-        TOMCAT_USER = credentials('tomcat-username') // Jenkins stored credentials for username
-        TOMCAT_PASS = credentials('tomcat-password') // Jenkins stored credentials for password
         TOMCAT_HOME = '/opt/tomcat'  // Adjust this to your Tomcat installation path
         SONARQUBE_SERVER = 'SonarQube'  // Jenkins SonarQube server name
     }
@@ -55,14 +53,17 @@ pipeline {
         stage('Deploy to Tomcat') {
             steps {
                 script {
-                    // Find the JAR file to deploy
-                    def jarFile = findFiles(glob: 'complete/target/*.jar')[0].path
-                    echo "Deploying ${jarFile} to Tomcat"
-                    
-                    // Use curl to deploy the JAR file to Tomcat
-                    sh """
-                        curl -u ${TOMCAT_USER}:${TOMCAT_PASS} --upload-file ${jarFile} ${TOMCAT_URL}
-                    """
+                    // Use withCredentials to securely access the Tomcat credentials
+                    withCredentials([usernamePassword(credentialsId: 'tomcat-credentials', passwordVariable: 'TOMCAT_PASS', usernameVariable: 'TOMCAT_USER')]) {
+                        // Find the JAR file to deploy
+                        def jarFile = findFiles(glob: 'complete/target/*.jar')[0].path
+                        echo "Deploying ${jarFile} to Tomcat"
+                        
+                        // Use curl to deploy the JAR file to Tomcat
+                        sh """
+                            curl -u ${TOMCAT_USER}:${TOMCAT_PASS} --upload-file ${jarFile} ${TOMCAT_URL}
+                        """
+                    }
                 }
             }
         }
