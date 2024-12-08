@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
+    
     <groupId>org.springframework</groupId>
     <artifactId>gs-maven</artifactId>
     <packaging>jar</packaging>
@@ -12,7 +12,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         
-        <!-- SonarQube properties (HTTP URL) -->
+        <!-- SonarQube properties (optional if defined in Jenkins) -->
         <sonar.projectKey>org.springframework:gs-maven</sonar.projectKey>
         <sonar.projectName>gs-maven</sonar.projectName>
         <sonar.host.url>http://13.233.93.12:9000/</sonar.host.url>
@@ -73,8 +73,7 @@
                 <artifactId>maven-deploy-plugin</artifactId>
                 <version>3.1.0</version>
                 <configuration>
-                    <!-- Nexus Repository URL (HTTP) -->
-                    <altDeploymentRepository>nexus::default::http://13.233.245.91:8081/repository/maven-releases/</altDeploymentRepository>
+                    <altDeploymentRepository>nexus::default::https://nexus.yourcompany.com/repository/maven-releases/</altDeploymentRepository>
                 </configuration>
             </plugin>
         </plugins>
@@ -83,13 +82,11 @@
     <distributionManagement>
         <repository>
             <id>nexus</id>
-            <!-- Nexus Repository URL (HTTP) -->
             <url>http://13.233.245.91:8081/repository/maven-releases/</url>
         </repository>
         <snapshotRepository>
             <id>nexus</id>
-            <!-- Nexus Snapshot Repository URL (HTTP) -->
-            <url>http://13.233.245.12:8081/repository/maven-snapshots/</url>
+            <url>http://13.233.245.12:8081//repository/maven-snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
 </project>
