@@ -62,8 +62,8 @@ pipeline {
         stage('Upload to Nexus') {
             steps {
                 script {
-                    // Define the artifact file (assuming it's in the target directory)
-                    def artifactFile = 'target/gs-maven-0.1.0-SNAPSHOT.jar'
+                    // Define the correct artifact file name
+                    def artifactFile = 'target/gs-maven-0.1.0.jar' // Updated to match the correct file name
                     
                     // Verify if the file exists
                     if (fileExists(artifactFile)) {
@@ -78,7 +78,7 @@ pipeline {
                                     -Durl=${NEXUS_URL} \
                                     -DgroupId=com.example \
                                     -DartifactId=gs-maven \
-                                    -Dversion=0.1.0-SNAPSHOT \
+                                    -Dversion=0.1.0 \
                                     -Dpackaging=jar \
                                     -Dusername=${NEXUS_USERNAME} \
                                     -Dpassword=${NEXUS_PASSWORD}
@@ -94,7 +94,7 @@ pipeline {
         stage('Deploy to Tomcat') {
             steps {
                 script {
-                    def warFile = 'target/gs-maven-0.1.0-SNAPSHOT.war'
+                    def warFile = 'target/gs-maven-0.1.0.war'
                     echo "Deploying ${warFile} to Tomcat"
                     sh """
                         curl -u ${TOMCAT_USER}:${TOMCAT_PASSWORD} --upload-file ${warFile} ${TOMCAT_DEPLOY_URL}
