@@ -1,54 +1,53 @@
 pipeline {
     agent any
 
-    tools {
-        maven 'maven'
-    }
-
     environment {
-        SONAR_HOST_URL = 'http://13.233.93.12:9000' // SonarQube server URL
-        SONAR_PROJECT_KEY = 'org.springframework:gs-maven'
-        SONAR_PROJECT_NAME = 'gs-maven'
-        NEXUS_CREDENTIALS_ID = 'nexus-credentials'  // Jenkins credential ID for Nexus
-        TOMCAT_HOST = '65.0.168.203:8080' // Tomcat server host
-        TOMCAT_USER = 'admin'
-        TOMCAT_PASSWORD = 'Sushmi@2001'
-        TOMCAT_DEPLOY_URL = "http://${TOMCAT_HOST}/manager/text/deploy?path=/gs-maven&update=true"
+        TOMCAT_URL = "http://65.0.168.203:8080/manager/text/deploy?path=/gs-maven"
+        TOMCAT_USER = credentials('tomcat-username') // Jenkins stored credentials for username
+        TOMCAT_PASS = credentials('tomcat-password') // Jenkins stored credentials for password
+        TOMCAT_HOME = '/opt/tomcat'  // Adjust this to your Tomcat installation path
+        SONARQUBE_SERVER = 'SonarQube'  // Jenkins SonarQube server name
     }
 
     stages {
-        stage('Clone Repository') {
+        stage('Prepare Tomcat Configuration') {
             steps {
-                git branch: 'main', credentialsId: 'github', url: 'https://github.com/Rama3058/gs-maven.git'
+                script {
+                    echo 'Configuring Tomcat with updated permissions...'
+                    sh """
+                        cp custom-tomcat-users.xml ${TOMCAT_HOME}/conf/tomcat-users.xml
+                        ${TOMCAT_HOME}/bin/shutdown.sh
+                        ${TOMCAT_HOME}/bin/startup.sh
+                    """
+                }
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    dir('complete') {
-                        withCredentials([usernamePassword(credentialsId: 'sonar', usernameVariable: 'SONAR_USER', passwordVariable: 'SONAR_TOKEN')]) {
-                            sh """
-                                mvn clean verify sonar:sonar \
-                                    -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                                    -Dsonar.projectName=${SONAR_PROJECT_NAME} \
-                                    -Dsonar.host.url=${SONAR_HOST_URL} \
-                                    -Dsonar.login=${SONAR_TOKEN}
-                            """
-                        }
+                    echo 'Running SonarQube analysis...'
+
+                    // Ensure SonarQube scanner is installed and configured in Jenkins
+                    withSonarQubeEnv('SonarQube') {
+                        // Run SonarQube analysis using Maven or Gradle
+                        sh 'mvn clean verify sonar:sonar'
                     }
                 }
             }
         }
 
-        stage('Build') {
+        stage('Build Application') {
             steps {
                 script {
-                    dir('complete') {
-                        sh 'mvn clean package'
-                        // List files in the target directory to verify JAR file creation
-                        sh 'ls -l target/'
-                    }
+                    echo 'Building application...'
+
+                    // Run your build tool (e.g., Maven or Gradle)
+                    sh 'mvn clean install'
+
+                    // Ensure the JAR file exists
+                    def jarFile = findFiles(glob: 'complete/target/*.jar')[0].path
+                    echo "Build successful, found JAR file: ${jarFile}"
                 }
             }
         }
@@ -56,27 +55,32 @@ pipeline {
         stage('Deploy to Tomcat') {
             steps {
                 script {
-                    def artifactFile = sh(script: 'find complete/target/ -name "*.jar" -print -quit', returnStdout: true).trim()
+                    // Find the JAR file to deploy
+                    def jarFile = findFiles(glob: 'complete/target/*.jar')[0].path
+                    echo "Deploying ${jarFile} to Tomcat"
                     
-                    if (!artifactFile) {
-                        error("JAR file not found. Please check the build step.")
-                    }
-                    
-                    echo "Deploying ${artifactFile} to Tomcat"
+                    // Use curl to deploy the JAR file to Tomcat
                     sh """
-                        curl -u ${TOMCAT_USER}:${TOMCAT_PASSWORD} --upload-file ${artifactFile} ${TOMCAT_DEPLOY_URL}
+                        curl -u ${TOMCAT_USER}:${TOMCAT_PASS} --upload-file ${jarFile} ${TOMCAT_URL}
                     """
                 }
+            }
+        }
+
+        stage('Post-Deployment Actions') {
+            steps {
+                echo 'Pipeline completed successfully!'
             }
         }
     }
 
     post {
         success {
-            echo 'Pipeline completed successfully!'
+            echo 'Deployment successful!'
         }
+
         failure {
-            echo 'Pipeline failed. Please check the logs.'
+            echo 'Pipeline failed. Please check the logs for more details.'
         }
     }
 }
