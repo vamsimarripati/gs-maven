@@ -54,7 +54,7 @@ pipeline {
             }
         }
 
-stage('Upload to Nexus') {
+        stage('Upload to Nexus') {
             steps {
                 script {
                     // Find the artifact file (JAR)
@@ -70,13 +70,16 @@ stage('Upload to Nexus') {
                                 -DgroupId=com.example \
                                 -DartifactId=gs-maven \
                                 -Dversion=0.1.0-SNAPSHOT \
-                                -Dpackaging=jar
+                                -Dpackaging=jar \
+                                -DrepositoryId=nexus \
+                                -Durl=${NEXUS_URL} \
+                                -Dusername=${NEXUS_USERNAME} \
+                                -Dpassword=${NEXUS_PASSWORD}
                         """
                     }
                 }
             }
         }
-
 
         stage('Deploy to Tomcat') {
             steps {
