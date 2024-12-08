@@ -66,8 +66,8 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    // Ensure that you're in the correct directory
                     dir('complete') {
+                        // Clean and build the project
                         sh 'mvn clean package'
                     }
                 }
@@ -77,21 +77,25 @@ pipeline {
         stage('Upload to Nexus') {
             steps {
                 script {
-                    // Use findFiles to locate the artifact
-                    def artifactFile = findFiles(glob: '**/target/*.jar')[0].path
-                    echo "Uploading artifact ${artifactFile} to Nexus"
-                    withCredentials([usernamePassword(credentialsId: 'nexus-credentials', usernameVariable: 'NEXUS_USERNAME', passwordVariable: 'NEXUS_PASSWORD')]) {
-                        sh """
-                            mvn deploy:deploy-file \
-                                -Dfile=${artifactFile} \
-                                -DrepositoryId=nexus \
-                                -Durl=${NEXUS_URL} \
-                                -DgroupId=com.example \
-                                -DartifactId=gs-maven \
-                                -Dversion=0.1.0-SNAPSHOT \
-                                -Dpackaging=jar \
-                                -s settings.xml
-                        """
+                    // Use findFiles to locate the artifact (jar file)
+                    def artifactFile = findFiles(glob: '**/target/*.jar')[0]?.path
+                    if (artifactFile) {
+                        echo "Uploading artifact ${artifactFile} to Nexus"
+                        withCredentials([usernamePassword(credentialsId: 'nexus-credentials', usernameVariable: 'NEXUS_USERNAME', passwordVariable: 'NEXUS_PASSWORD')]) {
+                            sh """
+                                mvn deploy:deploy-file \
+                                    -Dfile=${artifactFile} \
+                                    -DrepositoryId=nexus-releases \
+                                    -Durl=${NEXUS_URL} \
+                                    -DgroupId=com.example \
+                                    -DartifactId=gs-maven \
+                                    -Dversion=0.1.0-SNAPSHOT \
+                                    -Dpackaging=jar \
+                                    -s settings.xml
+                            """
+                        }
+                    } else {
+                        error "No artifact found to upload to Nexus"
                     }
                 }
             }
@@ -100,11 +104,16 @@ pipeline {
         stage('Deploy to Tomcat') {
             steps {
                 script {
-                    def warFile = findFiles(glob: '**/target/*.war')[0].path
-                    echo "Deploying ${warFile} to Tomcat"
-                    sh """
-                        curl -u ${TOMCAT_USER}:${TOMCAT_PASSWORD} --upload-file ${warFile} ${TOMCAT_DEPLOY_URL}
-                    """
+                    // Use findFiles to locate the WAR file
+                    def warFile = findFiles(glob: '**/target/*.war')[0]?.path
+                    if (warFile) {
+                        echo "Deploying ${warFile} to Tomcat"
+                        sh """
+                            curl -u ${TOMCAT_USER}:${TOMCAT_PASSWORD} --upload-file ${warFile} ${TOMCAT_DEPLOY_URL}
+                        """
+                    } else {
+                        error "No WAR file found to deploy to Tomcat"
+                    }
                 }
             }
         }
