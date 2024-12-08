@@ -28,7 +28,6 @@ pipeline {
             steps {
                 script {
                     dir('complete') {
-                        // Using usernamePassword for SonarQube credentials
                         withCredentials([usernamePassword(credentialsId: 'sonar', usernameVariable: 'SONAR_USER', passwordVariable: 'SONAR_TOKEN')]) {
                             sh """
                                 mvn clean verify sonar:sonar \
@@ -46,7 +45,6 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    // Ensure that you're in the correct directory
                     dir('complete') {
                         sh 'mvn clean package'
                     }
