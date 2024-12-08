@@ -5,8 +5,8 @@
 
     <groupId>org.springframework</groupId>
     <artifactId>gs-maven</artifactId>
-    <packaging>jar</packaging>
-    <version>0.1.0-SNAPSHOT</version>
+    <packaging>jar</packaging> <!-- Packaging type set to JAR -->
+    <version>0.1.0</version>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -14,14 +14,14 @@
     </properties>
 
     <dependencies>
-        <!-- Joda-Time Dependency -->
+        <!-- Joda Time for date/time manipulation -->
         <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
             <version>2.9.2</version>
         </dependency>
 
-        <!-- JUnit Dependency for Unit Testing -->
+        <!-- JUnit for testing -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -46,7 +46,7 @@
                         <configuration>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>hello.HelloWorld</mainClass> <!-- Change this to your main class -->
+                                    <mainClass>hello.HelloWorld</mainClass> <!-- Update this if needed -->
                                 </transformer>
                             </transformers>
                         </configuration>
@@ -54,14 +54,14 @@
                 </executions>
             </plugin>
 
-            <!-- SonarQube Plugin for code analysis -->
+            <!-- SonarQube Plugin for Code Analysis -->
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
                 <version>3.9.1.2184</version>
             </plugin>
 
-            <!-- Maven Deploy Plugin for deploying the artifact to Nexus -->
+            <!-- Maven Deploy Plugin to deploy the JAR file to Nexus -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
@@ -73,19 +73,24 @@
     <distributionManagement>
         <repository>
             <id>nexus-releases</id>
-            <url>http://13.233.245.91:8081/repository/maven-releases/</url> <!-- HTTP URL updated -->
+            <url>http://13.233.245.91:8081/repository/maven-releases/</url> <!-- Changed to http -->
         </repository>
         <snapshotRepository>
             <id>nexus-snapshots</id>
-            <url>http://13.233.245.91:8081/repository/maven-snapshots/</url> <!-- HTTP URL updated -->
+            <url>http://13.233.245.91:8081/repository/maven-snapshots/</url> <!-- Changed to http -->
         </snapshotRepository>
     </distributionManagement>
 
-    <servers>
-        <server>
-            <id>nexus-releases</id>
-            <username>${env.NEXUS_USERNAME}</username>
-            <password>${env.NEXUS_PASSWORD}</password>
-        </server>
-    </servers>
+    <profiles>
+        <!-- Profile for SonarQube -->
+        <profile>
+            <id>sonar</id>
+            <properties>
+                <sonar.host.url>${env.SONAR_HOST_URL}</sonar.host.url>
+                <sonar.projectKey>${env.SONAR_PROJECT_KEY}</sonar.projectKey>
+                <sonar.projectName>${env.SONAR_PROJECT_NAME}</sonar.projectName>
+                <sonar.login>${env.SONAR_TOKEN}</sonar.login>
+            </properties>
+        </profile>
+    </profiles>
 </project>
