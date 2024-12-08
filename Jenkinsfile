@@ -27,6 +27,7 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 script {
+                     dir('complete') {
                     sh """
                         mvn clean verify sonar:sonar \
                             -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
@@ -36,7 +37,7 @@ pipeline {
                 }
             }
         }
-
+        }
         stage('Build') {
             steps {
                 dir('complete') {
