@@ -6,12 +6,12 @@ pipeline {
     }
 
     environment {
-        SONAR_HOST_URL = 'http://your-sonarqube-server.com' // SonarQube server URL
-        SONAR_PROJECT_KEY = 'your-project-key'
-        SONAR_PROJECT_NAME = 'your-project-name'
-        NEXUS_URL = 'https://nexus.yourcompany.com/repository/maven-releases/'
+        SONAR_HOST_URL = 'http://13.233.93.12:9000' // SonarQube server URL
+        SONAR_PROJECT_KEY = 'org.springframework:gs-maven'
+        SONAR_PROJECT_NAME = 'gs-maven'
+        NEXUS_URL = 'https://13.233.245.12:8081/repository/maven-releases/'
         NEXUS_CREDENTIALS_ID = 'nexus-credentials'  // Jenkins credential ID for Nexus
-        TOMCAT_HOST = 'your-tomcat-server-ip'
+        TOMCAT_HOST = 'http://65.0.168.203:8080'
         TOMCAT_USER = 'your-tomcat-username'
         TOMCAT_PASSWORD = 'your-tomcat-password'
         TOMCAT_DEPLOY_URL = "http://${TOMCAT_USER}:${TOMCAT_PASSWORD}@${TOMCAT_HOST}:8080/manager/text/deploy?path=/gs-maven&update=true"
@@ -24,18 +24,18 @@ pipeline {
             }
         }
 
-        // stage('SonarQube Analysis') {
-        //     steps {
-        //         script {
-        //             sh """
-        //                 mvn clean verify sonar:sonar \
-        //                     -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-        //                     -Dsonar.projectName=${SONAR_PROJECT_NAME} \
-        //                     -Dsonar.host.url=${SONAR_HOST_URL}
-        //             """
-        //         }
-        //     }
-        // }
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    sh """
+                        mvn clean verify sonar:sonar \
+                            -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                            -Dsonar.projectName=${SONAR_PROJECT_NAME} \
+                            -Dsonar.host.url=${SONAR_HOST_URL}
+                    """
+                }
+            }
+        }
 
         stage('Build') {
             steps {
