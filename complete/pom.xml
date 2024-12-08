@@ -5,7 +5,7 @@
     
     <groupId>org.springframework</groupId>
     <artifactId>gs-maven</artifactId>
-    <packaging>jar</packaging>
+    <packaging>war</packaging> <!-- Changed from jar to war -->
     <version>0.1.0</version>
 
     <properties>
@@ -19,45 +19,38 @@
     </properties>
 
     <dependencies>
-        <!-- tag::joda[] -->
+        <!-- Spring Web Dependency for Web Applications -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <version>5.3.18</version>
+        </dependency>
+
+        <!-- Other dependencies remain the same -->
         <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
             <version>2.9.2</version>
         </dependency>
-        <!-- end::joda[] -->
-        <!-- tag::junit[] -->
+        
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.12</version>
             <scope>test</scope>
         </dependency>
-        <!-- end::junit[] -->
     </dependencies>
 
     <build>
         <plugins>
-            <!-- Maven Shade Plugin (existing configuration) -->
+            <!-- Maven WAR Plugin for Packaging -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.4</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>hello.HelloWorld</mainClass>
-                                </transformer>
-                            </transformers>
-                        </configuration>
-                    </execution>
-                </executions>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.3.1</version>
+                <configuration>
+                    <webXml>src/main/webapp/WEB-INF/web.xml</webXml> <!-- Ensure web.xml exists -->
+                </configuration>
             </plugin>
 
             <!-- SonarQube Maven Plugin -->
