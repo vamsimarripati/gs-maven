@@ -57,10 +57,10 @@ pipeline {
         stage('Deploy to Tomcat') {
             steps {
                 script {
-                    // List files in target directory and capture JAR file path
-                    def artifactFile = sh(script: 'ls target/*.jar || echo "No JAR file found"', returnStdout: true).trim()
+                    // Use find command to search for .jar file in target directory
+                    def artifactFile = sh(script: 'find target/ -name "*.jar" -print -quit', returnStdout: true).trim()
                     
-                    if (artifactFile == "No JAR file found") {
+                    if (!artifactFile) {
                         error("JAR file not found. Please check the build step.")
                     }
                     
