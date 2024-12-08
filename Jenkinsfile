@@ -28,7 +28,6 @@ pipeline {
             steps {
                 script {
                     dir('complete') {
-                        // Using usernamePassword for SonarQube credentials
                         withCredentials([usernamePassword(credentialsId: 'sonar', usernameVariable: 'SONAR_USER', passwordVariable: 'SONAR_TOKEN')]) {
                             sh """
                                 mvn clean verify sonar:sonar \
@@ -64,8 +63,8 @@ pipeline {
         stage('Upload to Nexus') {
             steps {
                 script {
-                    // Define the correct artifact file name
-                    def artifactFile = 'target/gs-maven-0.1.0.jar'  // Change to match actual file generated
+                    // Use the correct artifact file name from the build output
+                    def artifactFile = 'target/original-gs-maven-0.1.0.jar'  // Corrected name
 
                     // Verify if the file exists
                     if (fileExists(artifactFile)) {
