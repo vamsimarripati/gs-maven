@@ -28,6 +28,7 @@ pipeline {
             steps {
                 script {
                     dir('complete') {
+                        // Using usernamePassword for SonarQube credentials
                         withCredentials([usernamePassword(credentialsId: 'sonar', usernameVariable: 'SONAR_USER', passwordVariable: 'SONAR_TOKEN')]) {
                             sh """
                                 mvn clean verify sonar:sonar \
@@ -45,6 +46,7 @@ pipeline {
         stage('Build') {
             steps {
                 script {
+                    // Ensure that you're in the correct directory
                     dir('complete') {
                         sh 'mvn clean package'
                     }
@@ -55,22 +57,20 @@ pipeline {
         stage('Upload to Nexus') {
             steps {
                 script {
+                    // Find the artifact file (JAR)
                     def artifactFile = sh(script: "ls complete/target/*.jar", returnStdout: true).trim()
                     echo "Uploading artifact ${artifactFile} to Nexus"
                     
                     withCredentials([usernamePassword(credentialsId: "${NEXUS_CREDENTIALS_ID}", usernameVariable: 'NEXUS_USERNAME', passwordVariable: 'NEXUS_PASSWORD')]) {
-                        echo "Deploying to Nexus repository at ${NEXUS_URL}"
                         sh """
                             mvn deploy:deploy-file \
                                 -Dfile=${artifactFile} \
                                 -DrepositoryId=nexus \
                                 -Durl=${NEXUS_URL} \
-                                -DgroupId=com.example \
+                                -DgroupId=org.springframework \
                                 -DartifactId=gs-maven \
                                 -Dversion=0.1.0-SNAPSHOT \
-                                -Dpackaging=jar \
-                                -Dusername=${NEXUS_USERNAME} \
-                                -Dpassword=${NEXUS_PASSWORD}
+                                -Dpackaging=jar
                         """
                     }
                 }
