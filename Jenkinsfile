@@ -77,7 +77,7 @@ pipeline {
         stage('Upload to Nexus') {
             steps {
                 script {
-                    // Upload the artifact to Nexus
+                    // Use findFiles to locate the artifact
                     def artifactFile = findFiles(glob: '**/target/*.jar')[0].path
                     echo "Uploading artifact ${artifactFile} to Nexus"
                     withCredentials([usernamePassword(credentialsId: 'nexus-credentials', usernameVariable: 'NEXUS_USERNAME', passwordVariable: 'NEXUS_PASSWORD')]) {
