@@ -6,11 +6,11 @@ pipeline {
     }
 
     environment {
-        SONAR_HOST_URL = 'http://13.233.93.12:9000'
+        SONAR_HOST_URL = 'http://13.233.93.12:9000' // SonarQube server URL
         SONAR_PROJECT_KEY = 'org.springframework:gs-maven'
         SONAR_PROJECT_NAME = 'gs-maven'
         NEXUS_URL = 'https://13.233.245.91:8081/repository/maven-releases/'
-        NEXUS_CREDENTIALS_ID = 'nexus-credentials'
+        NEXUS_CREDENTIALS_ID = 'nexus-credentials'  // Jenkins credential ID for Nexus
         TOMCAT_HOST = 'http://65.0.168.203:8080'
         TOMCAT_USER = 'admin'
         TOMCAT_PASSWORD = 'Sushmi@2001'
@@ -28,7 +28,7 @@ pipeline {
             steps {
                 script {
                     dir('complete') {
-                        withCredentials([usernamePassword(credentialsId: 'sonar', usernameVariable: 'SONAR_USER', passwordVariable: 'SONAR_TOKEN')]) {
+                        withCredentials([string(credentialsId: 'sonar', variable: 'SONAR_TOKEN')]) {
                             sh """
                                 mvn clean verify sonar:sonar \
                                     -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
@@ -53,9 +53,10 @@ pipeline {
         stage('Upload to Nexus') {
             steps {
                 script {
+                    // Find the artifact file (JAR)
                     def artifactFile = sh(script: "ls complete/target/*.jar", returnStdout: true).trim()
                     echo "Uploading artifact ${artifactFile} to Nexus"
-
+                    
                     withCredentials([usernamePassword(credentialsId: "${NEXUS_CREDENTIALS_ID}", usernameVariable: 'NEXUS_USERNAME', passwordVariable: 'NEXUS_PASSWORD')]) {
                         sh """
                             mvn deploy:deploy-file \
@@ -75,7 +76,8 @@ pipeline {
         stage('Deploy to Tomcat') {
             steps {
                 script {
-                    def warFile = findFiles(glob: '**/target/*.war')[0].path
+                    // Find the WAR file for deployment
+                    def warFile = sh(script: "ls complete/target/*.war", returnStdout: true).trim()
                     echo "Deploying ${warFile} to Tomcat"
                     sh """
                         curl -u ${TOMCAT_USER}:${TOMCAT_PASSWORD} --upload-file ${warFile} ${TOMCAT_DEPLOY_URL}
