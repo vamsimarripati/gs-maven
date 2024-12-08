@@ -64,6 +64,7 @@ pipeline {
                     def warFile = 'target/gs-maven-0.1.0.war'
                     def jarFile = 'target/gs-maven-0.1.0.jar'
                     
+                    // Check if WAR file exists, if not, fallback to JAR file
                     if (fileExists(warFile)) {
                         deployFile = warFile
                     } else if (fileExists(jarFile)) {
