@@ -13,7 +13,7 @@ pipeline {
         TOMCAT_HOST = 'http://65.0.168.203:8080'
         TOMCAT_USER = 'admin'
         TOMCAT_PASSWORD = 'Sushmi@2001'
-        TOMCAT_DEPLOY_URL = "http://${TOMCAT_USER}:${TOMCAT_PASSWORD}@${TOMCAT_HOST}:8080/manager/text/deploy?path=/gs-maven&update=true"
+        TOMCAT_DEPLOY_URL = "http://${TOMCAT_HOST}/manager/text/deploy?path=/gs-maven&update=true"
     }
 
     stages {
