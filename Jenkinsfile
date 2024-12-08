@@ -49,6 +49,10 @@ pipeline {
                     // Ensure that you're in the correct directory
                     dir('complete') {
                         sh 'mvn clean package'
+                        
+                        // Debugging step to verify the presence of the jar file
+                        sh 'ls -l target/*.jar'
+                        
                         archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
                     }
                 }
@@ -60,22 +64,28 @@ pipeline {
                 script {
                     // Define the artifact file (assuming it's in the target directory)
                     def artifactFile = 'target/gs-maven-0.1.0-SNAPSHOT.jar'
-                    echo "Uploading artifact ${artifactFile} to Nexus"
                     
-                    // Use Jenkins credentials securely with the 'withCredentials' block
-                    withCredentials([usernamePassword(credentialsId: 'nexus-credentials', usernameVariable: 'NEXUS_USERNAME', passwordVariable: 'NEXUS_PASSWORD')]) {
-                        sh """
-                            mvn deploy:deploy-file \
-                                -Dfile=${artifactFile} \
-                                -DrepositoryId=nexus \
-                                -Durl=${NEXUS_URL} \
-                                -DgroupId=com.example \
-                                -DartifactId=gs-maven \
-                                -Dversion=0.1.0-SNAPSHOT \
-                                -Dpackaging=jar \
-                                -Dusername=${NEXUS_USERNAME} \
-                                -Dpassword=${NEXUS_PASSWORD}
-                        """
+                    // Verify if the file exists
+                    if (fileExists(artifactFile)) {
+                        echo "Found artifact ${artifactFile}, uploading to Nexus..."
+                        
+                        // Use Jenkins credentials securely with the 'withCredentials' block
+                        withCredentials([usernamePassword(credentialsId: 'nexus-credentials', usernameVariable: 'NEXUS_USERNAME', passwordVariable: 'NEXUS_PASSWORD')]) {
+                            sh """
+                                mvn deploy:deploy-file \
+                                    -Dfile=${artifactFile} \
+                                    -DrepositoryId=nexus \
+                                    -Durl=${NEXUS_URL} \
+                                    -DgroupId=com.example \
+                                    -DartifactId=gs-maven \
+                                    -Dversion=0.1.0-SNAPSHOT \
+                                    -Dpackaging=jar \
+                                    -Dusername=${NEXUS_USERNAME} \
+                                    -Dpassword=${NEXUS_PASSWORD}
+                            """
+                        }
+                    } else {
+                        error "Artifact ${artifactFile} not found!"
                     }
                 }
             }
