@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -5,7 +6,7 @@
     <groupId>org.springframework</groupId>
     <artifactId>gs-maven</artifactId>
     <packaging>jar</packaging>
-    <version>0.1.0-SNAPSHOT</version> <!-- Make sure this version matches your deployment version -->
+    <version>0.1.0</version>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -18,26 +19,25 @@
     </properties>
 
     <dependencies>
-        <!-- tag::joda[] -->
+        <!-- Joda Time -->
         <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
             <version>2.9.2</version>
         </dependency>
-        <!-- end::joda[] -->
-        <!-- tag::junit[] -->
+
+        <!-- JUnit (for testing) -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.12</version>
             <scope>test</scope>
         </dependency>
-        <!-- end::junit[] -->
     </dependencies>
 
     <build>
         <plugins>
-            <!-- Maven Shade Plugin (existing configuration) -->
+            <!-- Maven Shade Plugin (for fat JARs) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -72,6 +72,7 @@
                 <artifactId>maven-deploy-plugin</artifactId>
                 <version>3.1.0</version>
                 <configuration>
+                    <!-- Specify the deployment repository -->
                     <altDeploymentRepository>nexus::default::https://13.233.245.91:8081/repository/maven-releases/</altDeploymentRepository>
                 </configuration>
             </plugin>
