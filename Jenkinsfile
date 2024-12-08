@@ -1,20 +1,15 @@
 pipeline {
     agent any
 
-    tools {
-        maven 'maven'
-    }
-
     environment {
-        SONAR_HOST_URL = 'http://13.233.93.12:9000' // SonarQube server URL
+        SONAR_HOST_URL = 'http://13.233.93.12:9000' // SonarQube server URL over HTTP
         SONAR_PROJECT_KEY = 'org.springframework:gs-maven'
         SONAR_PROJECT_NAME = 'gs-maven'
-        NEXUS_URL = 'https://13.233.245.91:8081/repository/maven-releases/'
-        NEXUS_CREDENTIALS_ID = 'nexus-credentials'  // Jenkins credential ID for Nexus
-        TOMCAT_HOST = 'http://65.0.168.203:8080'
-        TOMCAT_USER = 'admin'
-        TOMCAT_PASSWORD = 'Sushmi@2001'
-        TOMCAT_DEPLOY_URL = "http://${TOMCAT_USER}:${TOMCAT_PASSWORD}@${TOMCAT_HOST}:8080/manager/text/deploy?path=/gs-maven&update=true"
+        
+        // Update Nexus URL to HTTP
+        NEXUS_URL = 'http://13.233.245.91:8081/repository/maven-releases/'
+        NEXUS_USERNAME = credentials('nexus-username')  // Adjust to your Jenkins credential ID
+        NEXUS_PASSWORD = credentials('nexus-password')  // Adjust to your Jenkins credential ID
     }
 
     stages {
@@ -55,20 +50,15 @@ pipeline {
         stage('Upload to Nexus') {
             steps {
                 script {
-                    // Find the artifact file (JAR)
-                    def artifactFile = sh(script: "ls complete/target/*.jar", returnStdout: true).trim()
-                    echo "Uploading artifact ${artifactFile} to Nexus"
-                    
-                    withCredentials([usernamePassword(credentialsId: "${NEXUS_CREDENTIALS_ID}", usernameVariable: 'NEXUS_USERNAME', passwordVariable: 'NEXUS_PASSWORD')]) {
+                    echo "Uploading artifact to Nexus: complete/target/gs-maven-0.1.0.jar"
+                    withCredentials([usernamePassword(credentialsId: 'nexus-credentials', passwordVariable: 'NEXUS_PASSWORD', usernameVariable: 'NEXUS_USERNAME')]) {
                         sh """
                             mvn deploy:deploy-file \
-                                -Dfile=${artifactFile} \
-                                -DrepositoryId=nexus \
-                                -Durl=${NEXUS_URL} \
-                                -DgroupId=org.springframework \
-                                -DartifactId=gs-maven \
-                                -Dversion=0.1.0-SNAPSHOT \
-                                -Dpackaging=jar
+                            -Dfile=complete/target/gs-maven-0.1.0.jar \
+                            -DrepositoryId=nexus \
+                            -Durl=${NEXUS_URL} \
+                            -Dusername=${NEXUS_USERNAME} \
+                            -Dpassword=${NEXUS_PASSWORD}
                         """
                     }
                 }
