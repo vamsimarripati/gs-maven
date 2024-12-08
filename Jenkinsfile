@@ -43,16 +43,15 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    // Ensure you're in the correct directory
                     dir('complete') {
                         // Clean and package the project
                         sh 'mvn clean package'
 
-                        // Debugging step to verify the presence of the WAR file
-                        sh 'ls -l target/*.war'
+                        // Debugging step to verify the presence of WAR/JAR file
+                        sh 'ls -l target/'
 
                         // Archive the artifacts for reference
-                        archiveArtifacts artifacts: '**/target/*.war', allowEmptyArchive: true
+                        archiveArtifacts artifacts: '**/target/*.war,**/target/*.jar', allowEmptyArchive: true
                     }
                 }
             }
@@ -61,10 +60,21 @@ pipeline {
         stage('Deploy to Tomcat') {
             steps {
                 script {
-                    def warFile = 'target/gs-maven-0.1.0.war'  // Ensure the WAR file name is correct
-                    echo "Deploying ${warFile} to Tomcat"
+                    def deployFile = ''
+                    def warFile = 'target/gs-maven-0.1.0.war'
+                    def jarFile = 'target/gs-maven-0.1.0.jar'
+                    
+                    if (fileExists(warFile)) {
+                        deployFile = warFile
+                    } else if (fileExists(jarFile)) {
+                        deployFile = jarFile
+                    } else {
+                        error "No deployable file found."
+                    }
+
+                    echo "Deploying ${deployFile} to Tomcat"
                     sh """
-                        curl -u ${TOMCAT_USER}:${TOMCAT_PASSWORD} --upload-file ${warFile} ${TOMCAT_DEPLOY_URL}
+                        curl -u ${TOMCAT_USER}:${TOMCAT_PASSWORD} --upload-file ${deployFile} ${TOMCAT_DEPLOY_URL}
                     """
                 }
             }
