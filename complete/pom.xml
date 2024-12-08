@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    
+
     <groupId>org.springframework</groupId>
     <artifactId>gs-maven</artifactId>
-    <packaging>war</packaging>  <!-- Changed to WAR packaging -->
+    <packaging>war</packaging> <!-- Use 'war' packaging for a web application -->
     <version>0.1.0</version>
 
     <properties>
@@ -19,6 +19,7 @@
     </properties>
 
     <dependencies>
+        <!-- Add necessary dependencies for your web application -->
         <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
@@ -34,14 +35,32 @@
 
     <build>
         <plugins>
+            <!-- Maven WAR Plugin to package the project as a WAR file -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
                 <version>3.3.1</version>
                 <configuration>
-                    <!-- No reference to web.xml -->
+                    <webXml>src/main/webapp/WEB-INF/web.xml</webXml> <!-- Define the web.xml location -->
                 </configuration>
             </plugin>
+
+            <!-- Maven Shade Plugin (existing configuration) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.4</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- SonarQube Maven Plugin -->
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
@@ -49,11 +68,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <distributionManagement>
-        <repository>
-            <id>nexus</id>
-            <url>http://13.233.245.91:8081/repository/maven-releases/</url>
-        </repository>
-    </distributionManagement>
 </project>
