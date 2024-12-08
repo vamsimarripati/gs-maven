@@ -1,38 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     
     <groupId>org.springframework</groupId>
     <artifactId>gs-maven</artifactId>
-    <packaging>war</packaging> <!-- Changed from jar to war -->
+    <packaging>war</packaging>  <!-- Changed to WAR packaging -->
     <version>0.1.0</version>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         
-        <!-- SonarQube properties (optional if defined in Jenkins) -->
+        <!-- SonarQube properties -->
         <sonar.projectKey>org.springframework:gs-maven</sonar.projectKey>
         <sonar.projectName>gs-maven</sonar.projectName>
         <sonar.host.url>http://13.233.93.12:9000/</sonar.host.url>
     </properties>
 
     <dependencies>
-        <!-- Spring Web Dependency for Web Applications -->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-web</artifactId>
-            <version>5.3.18</version>
-        </dependency>
-
-        <!-- Other dependencies remain the same -->
         <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
             <version>2.9.2</version>
         </dependency>
-        
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -43,31 +34,18 @@
 
     <build>
         <plugins>
-            <!-- Maven WAR Plugin for Packaging -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
                 <version>3.3.1</version>
                 <configuration>
-                    <webXml>src/main/webapp/WEB-INF/web.xml</webXml> <!-- Ensure web.xml exists -->
+                    <!-- No reference to web.xml -->
                 </configuration>
             </plugin>
-
-            <!-- SonarQube Maven Plugin -->
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
                 <version>3.9.0.1101</version>
-            </plugin>
-
-            <!-- Maven Deploy Plugin for Nexus -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <version>3.1.0</version>
-                <configuration>
-                    <altDeploymentRepository>nexus::default::https://nexus.yourcompany.com/repository/maven-releases/</altDeploymentRepository>
-                </configuration>
             </plugin>
         </plugins>
     </build>
@@ -77,9 +55,5 @@
             <id>nexus</id>
             <url>http://13.233.245.91:8081/repository/maven-releases/</url>
         </repository>
-        <snapshotRepository>
-            <id>nexus</id>
-            <url>http://13.233.245.12:8081//repository/maven-snapshots/</url>
-        </snapshotRepository>
     </distributionManagement>
 </project>
