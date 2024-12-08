@@ -27,21 +27,29 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 script {
-                     dir('complete') {
-                    sh """
-                        mvn clean verify sonar:sonar \
-                            -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                            -Dsonar.projectName=${SONAR_PROJECT_NAME} \
-                            -Dsonar.host.url=${SONAR_HOST_URL}
-                    """
+                    // Assuming the project is in the 'complete' directory
+                    dir('complete') {
+                        withCredentials([string(credentialsId: 'sonar', variable: 'SONAR_TOKEN')]) {
+                            sh """
+                                mvn clean verify sonar:sonar \
+                                    -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                                    -Dsonar.projectName=${SONAR_PROJECT_NAME} \
+                                    -Dsonar.host.url=${SONAR_HOST_URL} \
+                                    -Dsonar.login=${SONAR_TOKEN}
+                            """
+                        }
+                    }
                 }
             }
         }
-        }
+
         stage('Build') {
             steps {
-                dir('complete') {
-                    sh 'mvn clean package'
+                script {
+                    // Ensure that you're in the correct directory
+                    dir('complete') {
+                        sh 'mvn clean package'
+                    }
                 }
             }
         }
