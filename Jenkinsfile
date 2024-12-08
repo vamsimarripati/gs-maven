@@ -1,51 +1,77 @@
 pipeline {
     agent any
 
+    tools {
+        maven 'maven'
+    }
+
     environment {
-        TOMCAT_URL = "http://65.0.168.203:8080/manager/text/deploy?path=/gs-maven"
-        TOMCAT_HOME = '/opt/tomcat'  // Adjust this to your Tomcat installation path
-        SONARQUBE_SERVER = 'SonarQube'  // Jenkins SonarQube server name
+        SONAR_HOST_URL = 'http://13.233.93.12:9000' // SonarQube server URL
+        SONAR_PROJECT_KEY = 'org.springframework:gs-maven'
+        SONAR_PROJECT_NAME = 'gs-maven'
+        NEXUS_URL = 'https://13.233.245.91:8081/repository/maven-releases/'
+        NEXUS_CREDENTIALS_ID = 'nexus-credentials'  // Jenkins credential ID for Nexus
+        TOMCAT_HOST = 'http://65.0.168.203:8080'
+        TOMCAT_USER = 'admin'
+        TOMCAT_PASSWORD = 'Sushmi@2001'
+        TOMCAT_DEPLOY_URL = "http://${TOMCAT_USER}:${TOMCAT_PASSWORD}@${TOMCAT_HOST}:8080/manager/text/deploy?path=/gs-maven&update=true"
     }
 
     stages {
-        stage('Prepare Tomcat Configuration') {
+        stage('Clone Repository') {
             steps {
-                script {
-                    echo 'Configuring Tomcat with updated permissions...'
-                    sh """
-                        cp custom-tomcat-users.xml ${TOMCAT_HOME}/conf/tomcat-users.xml
-                        ${TOMCAT_HOME}/bin/shutdown.sh
-                        ${TOMCAT_HOME}/bin/startup.sh
-                    """
-                }
+                git branch: 'main', credentialsId: 'github', url: 'https://github.com/Rama3058/gs-maven.git'
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    echo 'Running SonarQube analysis...'
-
-                    // Ensure SonarQube scanner is installed and configured in Jenkins
-                    withSonarQubeEnv('SonarQube') {
-                        // Run SonarQube analysis using Maven or Gradle
-                        sh 'mvn clean verify sonar:sonar'
+                    dir('complete') {
+                        // Using usernamePassword for SonarQube credentials
+                        withCredentials([usernamePassword(credentialsId: 'sonar', usernameVariable: 'SONAR_USER', passwordVariable: 'SONAR_TOKEN')]) {
+                            sh """
+                                mvn clean verify sonar:sonar \
+                                    -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                                    -Dsonar.projectName=${SONAR_PROJECT_NAME} \
+                                    -Dsonar.host.url=${SONAR_HOST_URL} \
+                                    -Dsonar.login=${SONAR_TOKEN}
+                            """
+                        }
                     }
                 }
             }
         }
 
-        stage('Build Application') {
+        stage('Build') {
             steps {
                 script {
-                    echo 'Building application...'
+                    // Ensure that you're in the correct directory
+                    dir('complete') {
+                        sh 'mvn clean package'
+                    }
+                }
+            }
+        }
 
-                    // Run your build tool (e.g., Maven or Gradle)
-                    sh 'mvn clean install'
-
-                    // Ensure the JAR file exists
-                    def jarFile = findFiles(glob: 'complete/target/*.jar')[0].path
-                    echo "Build successful, found JAR file: ${jarFile}"
+        stage('Upload to Nexus') {
+            steps {
+                script {
+                    // Upload the artifact to Nexus
+                    def artifactFile = findFiles(glob: '**/target/*.jar')[0].path
+                    echo "Uploading artifact ${artifactFile} to Nexus"
+                    withCredentials([usernamePassword(credentialsId: "${NEXUS_CREDENTIALS_ID}", usernameVariable: 'NEXUS_USERNAME', passwordVariable: 'NEXUS_PASSWORD')]) {
+                        sh """
+                            mvn deploy:deploy-file \
+                                -Dfile=${artifactFile} \
+                                -DrepositoryId=nexus \
+                                -Durl=${NEXUS_URL} \
+                                -DgroupId=com.example \
+                                -DartifactId=gs-maven \
+                                -Dversion=0.1.0-SNAPSHOT \
+                                -Dpackaging=jar
+                        """
+                    }
                 }
             }
         }
@@ -53,35 +79,22 @@ pipeline {
         stage('Deploy to Tomcat') {
             steps {
                 script {
-                    // Use withCredentials to securely access the Tomcat credentials
-                    withCredentials([usernamePassword(credentialsId: 'tomcat-credentials', passwordVariable: 'TOMCAT_PASS', usernameVariable: 'TOMCAT_USER')]) {
-                        // Find the JAR file to deploy
-                        def jarFile = findFiles(glob: 'complete/target/*.jar')[0].path
-                        echo "Deploying ${jarFile} to Tomcat"
-                        
-                        // Use curl to deploy the JAR file to Tomcat
-                        sh """
-                            curl -u ${TOMCAT_USER}:${TOMCAT_PASS} --upload-file ${jarFile} ${TOMCAT_URL}
-                        """
-                    }
+                    def warFile = findFiles(glob: '**/target/*.war')[0].path
+                    echo "Deploying ${warFile} to Tomcat"
+                    sh """
+                        curl -u ${TOMCAT_USER}:${TOMCAT_PASSWORD} --upload-file ${warFile} ${TOMCAT_DEPLOY_URL}
+                    """
                 }
-            }
-        }
-
-        stage('Post-Deployment Actions') {
-            steps {
-                echo 'Pipeline completed successfully!'
             }
         }
     }
 
     post {
         success {
-            echo 'Deployment successful!'
+            echo 'Pipeline completed successfully!'
         }
-
         failure {
-            echo 'Pipeline failed. Please check the logs for more details.'
+            echo 'Pipeline failed. Please check the logs.'
         }
     }
 }
