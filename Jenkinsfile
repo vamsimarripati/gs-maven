@@ -9,10 +9,10 @@ pipeline {
         SONAR_HOST_URL = 'http://13.233.93.12:9000' // SonarQube server URL
         SONAR_PROJECT_KEY = 'org.springframework:gs-maven'
         SONAR_PROJECT_NAME = 'gs-maven'
-        TOMCAT_HOST = '65.0.168.203:8080'  // Only hostname and port
+        TOMCAT_HOST = 'http://65.0.168.203:8080'
         TOMCAT_USER = 'admin'
         TOMCAT_PASSWORD = 'Sushmi@2001'
-        TOMCAT_DEPLOY_URL = "http://${TOMCAT_USER}:${TOMCAT_PASSWORD}@${TOMCAT_HOST}/manager/text/deploy?path=/gs-maven&update=true"
+        TOMCAT_DEPLOY_URL = "http://${TOMCAT_USER}:${TOMCAT_PASSWORD}@${TOMCAT_HOST}:8080/manager/text/deploy?path=/gs-maven&update=true"
     }
 
     stages {
@@ -48,11 +48,11 @@ pipeline {
                         // Clean and package the project
                         sh 'mvn clean package'
 
-                        // Debugging step to verify the presence of the JAR and WAR files
-                        sh 'ls -l target/*.war target/*.jar'
+                        // Debugging step to verify the presence of the WAR file
+                        sh 'ls -l target/*.war'
 
                         // Archive the artifacts for reference
-                        archiveArtifacts artifacts: '**/target/*.war, **/target/*.jar', allowEmptyArchive: true
+                        archiveArtifacts artifacts: '**/target/*.war', allowEmptyArchive: true
                     }
                 }
             }
@@ -61,24 +61,11 @@ pipeline {
         stage('Deploy to Tomcat') {
             steps {
                 script {
-                    def deployFile = ''
-                    def warFile = findFiles(glob: '**/target/*.war')[0]?.path
-                    def jarFile = findFiles(glob: '**/target/*.jar')[0]?.path
-
-                    // Deploy WAR file to Tomcat if found
-                    if (warFile) {
-                        deployFile = warFile
-                        echo "Deploying WAR file: ${deployFile} to Tomcat"
-                        sh """
-                            curl -u ${TOMCAT_USER}:${TOMCAT_PASSWORD} --upload-file ${deployFile} ${TOMCAT_DEPLOY_URL}
-                        """
-                    } else if (jarFile) {
-                        deployFile = jarFile
-                        echo "Found JAR file: ${deployFile}. JAR files cannot be deployed directly to Tomcat."
-                    } else {
-                        echo "No WAR or JAR file found for deployment!"
-                        error "Neither a WAR nor a JAR file was found to deploy!"
-                    }
+                    def warFile = 'target/gs-maven-0.1.0.war'  // Ensure the WAR file name is correct
+                    echo "Deploying ${warFile} to Tomcat"
+                    sh """
+                        curl -u ${TOMCAT_USER}:${TOMCAT_PASSWORD} --upload-file ${warFile} ${TOMCAT_DEPLOY_URL}
+                    """
                 }
             }
         }
