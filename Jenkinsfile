@@ -46,13 +46,15 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    // Ensure that you're in the correct directory
+                    // Ensure you're in the correct directory
                     dir('complete') {
+                        // Clean and package the project
                         sh 'mvn clean package'
-                        
-                        // Debugging step to verify the presence of the jar file
+
+                        // Debugging step to verify the presence of the JAR file
                         sh 'ls -l target/*.jar'
-                        
+
+                        // Archive the artifacts for reference
                         archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
                     }
                 }
@@ -63,12 +65,12 @@ pipeline {
             steps {
                 script {
                     // Define the correct artifact file name
-                    def artifactFile = 'target/gs-maven-0.1.0.jar' // Updated to match the correct file name
-                    
+                    def artifactFile = 'target/gs-maven-0.1.0.jar'  // Change to match actual file generated
+
                     // Verify if the file exists
                     if (fileExists(artifactFile)) {
                         echo "Found artifact ${artifactFile}, uploading to Nexus..."
-                        
+
                         // Use Jenkins credentials securely with the 'withCredentials' block
                         withCredentials([usernamePassword(credentialsId: 'nexus-credentials', usernameVariable: 'NEXUS_USERNAME', passwordVariable: 'NEXUS_PASSWORD')]) {
                             sh """
@@ -94,7 +96,7 @@ pipeline {
         stage('Deploy to Tomcat') {
             steps {
                 script {
-                    def warFile = 'target/gs-maven-0.1.0.war'
+                    def warFile = 'target/gs-maven-0.1.0.war'  // Make sure to change if war file name is different
                     echo "Deploying ${warFile} to Tomcat"
                     sh """
                         curl -u ${TOMCAT_USER}:${TOMCAT_PASSWORD} --upload-file ${warFile} ${TOMCAT_DEPLOY_URL}
