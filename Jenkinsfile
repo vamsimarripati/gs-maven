@@ -1,4 +1,7 @@
 pipeline {
+       triggers {
+        cron(* * * * *)
+    }
     agent any
 
     tools {
