@@ -1,7 +1,7 @@
 pipeline {
-       triggers {
-        cron('* * * * *')
-    }
+    //    triggers {
+    //     cron('* * * * *')
+    // }
     agent any
 
     tools {
